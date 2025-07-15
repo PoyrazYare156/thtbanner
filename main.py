@@ -1,11 +1,13 @@
 from fastapi import FastAPI, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import cloudscraper
 
 app = FastAPI()
 
+# CORS çözümü
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -14,8 +16,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Static ve templates klasörleri bağlanıyor
+app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+# Header puanları
 SECURITY_HEADERS = {
     "content-security-policy": 20,
     "strict-transport-security": 15,
@@ -32,9 +37,7 @@ async def root(request: Request):
 @app.get("/api/scan")
 async def scan(url: str = Query(...)):
     try:
-        scraper = cloudscraper.create_scraper(
-            browser={'custom': 'ScraperBot/1.0'}
-        )
+        scraper = cloudscraper.create_scraper(browser={'custom': 'ScannerBot/1.0'})
         response = scraper.get(url, timeout=10)
         headers = dict(response.headers)
 
@@ -46,6 +49,5 @@ async def scan(url: str = Query(...)):
                 results[header] = {"value": None, "score": 0}
 
         return results
-
     except Exception as e:
         return {"error": str(e)}
