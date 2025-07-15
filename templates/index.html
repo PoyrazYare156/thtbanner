@@ -1,1 +1,20 @@
 
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Security Header Scanner</title>
+    <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+    <h1>Security Header Scanner</h1>
+    <input type="text" id="urlInput" placeholder="https://example.com" />
+    <button onclick="scanHeaders()">Tarama</button>
+    <br><br>
+    <textarea id="bulkInput" placeholder="Toplu URL girin, her satıra bir tane..."></textarea>
+    <button onclick="scanMultiple()">Tümünü Tara</button>
+    <button onclick="downloadCSV()">CSV Olarak İndir</button>
+    <pre id="results"></pre>
+    <script src="/static/app.js"></script>
+</body>
+</html>
