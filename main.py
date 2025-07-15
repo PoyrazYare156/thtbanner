@@ -1,17 +1,22 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 import httpx
 
 app = FastAPI()
 
-origins = ["*"]  # Geliştirme aşaması için herkese açık (isteğe bağlı kısıtlanabilir)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
 SECURITY_HEADERS = {
     "content-security-policy": 20,
@@ -22,53 +27,22 @@ SECURITY_HEADERS = {
     "permissions-policy": 10
 }
 
+@app.get("/", response_class=HTMLResponse)
+async def root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
 @app.get("/api/scan")
-async def scan_headers(url: str = Query(..., description="Target URL to scan")):
+async def scan_headers(url: str):
     try:
-        async with httpx.AsyncClient(follow_redirects=True, timeout=10) as client:
-            response = await client.head(url)
-
-        headers = {k.lower(): v for k, v in response.headers.items()}
-        report = {}
-        score = 100
-        recommendations = []
-
-        for header, points in SECURITY_HEADERS.items():
-            val = headers.get(header)
-            if not val:
-                score -= points
-                report[header] = None
-                recommendations.append(f"{header} is missing.")
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+        headers = dict(response.headers)
+        results = {}
+        for header, score in SECURITY_HEADERS.items():
+            if header in headers:
+                results[header] = {"value": headers[header], "score": score}
             else:
-                report[header] = val
-                if header == "content-security-policy":
-                    if any(x in val for x in ["*", "unsafe-inline", "unsafe-eval"]):
-                        score -= 10
-                        recommendations.append("CSP is weak (uses * or unsafe-*).")
-                    elif "nonce" not in val and "strict-dynamic" not in val:
-                        score -= 5
-                        recommendations.append("CSP lacks nonce or strict-dynamic.")
-
-        risk = "Low"
-        if score < 80:
-            risk = "Medium"
-        if score < 50:
-            risk = "High"
-
-        return {
-            "url": url,
-            "score": score,
-            "risk": risk,
-            "headers": report,
-            "recommendations": recommendations
-        }
-
+                results[header] = {"value": None, "score": 0}
+        return results
     except Exception as e:
-        return {
-            "url": url,
-            "error": str(e),
-            "score": 0,
-            "risk": "Error",
-            "headers": {},
-            "recommendations": ["Scan failed due to error."]
-        }
+        return {"error": str(e)}
