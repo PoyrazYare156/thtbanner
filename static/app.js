@@ -9,9 +9,13 @@ async function scanHeaders() {
   resultDiv.innerHTML = "<p>Scanning...</p>";
 
   try {
-    const response = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(url), {
-      method: "HEAD"
-    });
+    const response = await fetch("/api/scan?url=" + encodeURIComponent(url));
+    const data = await response.json();
+
+    if (data.error) {
+      resultDiv.innerHTML = `❌ Hata: ${data.error}`;
+      return;
+    }
 
     const securityHeaders = [
       { key: "content-security-policy", name: "Content-Security-Policy", points: 20, fix: "Add a strong CSP like: default-src 'self';" },
@@ -22,17 +26,16 @@ async function scanHeaders() {
       { key: "permissions-policy", name: "Permissions-Policy", points: 10, fix: "Define Permissions-Policy to restrict browser features." }
     ];
 
-    const headers = [...response.headers.entries()];
     let report = [];
     let jsonReport = { url, date: new Date().toISOString(), score: 100, risk: "", headers: {}, recommendations: [] };
     let score = 100;
     let missing = [];
 
     for (const header of securityHeaders) {
-      const match = headers.find(([key]) => key.toLowerCase() === header.key);
-      if (match) {
+      const val = data[header.key] || data[header.name.toLowerCase()];
+      if (val && val.value !== null) {
         if (header.key === "content-security-policy") {
-          let value = match[1];
+          let value = val.value;
           jsonReport.headers[header.name] = value;
           if (value.includes("*") || value.includes("unsafe-inline") || value.includes("unsafe-eval")) {
             report.push(`<p style="color:orange;"><strong>${header.name}:</strong> ⚠️ Weak Policy: ${value}</p>`);
@@ -46,8 +49,8 @@ async function scanHeaders() {
             report.push(`<p><strong>${header.name}:</strong> ✅ ${value}</p>`);
           }
         } else {
-          jsonReport.headers[header.name] = match[1];
-          report.push(`<p><strong>${header.name}:</strong> ✅ ${match[1]}</p>`);
+          jsonReport.headers[header.name] = val.value;
+          report.push(`<p><strong>${header.name}:</strong> ✅ ${val.value}</p>`);
         }
       } else {
         report.push(`<p style="color:red;"><strong>${header.name}:</strong> ❌ Missing<br><em>Recommendation:</em> ${header.fix}</p>`);
@@ -74,25 +77,24 @@ async function scanHeaders() {
 
     resultDiv.innerHTML = resultHTML;
 
-    // Save to history
     const history = JSON.parse(localStorage.getItem("scanHistory") || "[]");
     history.unshift({ url, date: new Date().toLocaleString(), score });
     localStorage.setItem("scanHistory", JSON.stringify(history.slice(0, 5)));
 
     renderHistory();
   } catch (err) {
-    resultDiv.innerHTML = "<p style='color:red;'>Error scanning the URL. Make sure CORS is allowed and the site is reachable.</p>";
+    resultDiv.innerHTML = "<p style='color:red;'>Error scanning the URL. Make sure your server is reachable.</p>";
   }
 }
 
 function exportPDF() {
   const result = document.getElementById("result");
   const opt = {
-    margin:       0.5,
-    filename:     'scan-result.pdf',
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  {},
-    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    margin: 0.5,
+    filename: 'scan-result.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {},
+    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
   };
   html2pdf().set(opt).from(result).save();
 }
@@ -119,7 +121,6 @@ function renderHistory() {
 
 window.onload = renderHistory;
 
-
 async function scanMultiple() {
   const input = document.getElementById("bulkUrls").value.trim();
   if (!input) return;
@@ -132,23 +133,23 @@ async function scanMultiple() {
 
   for (const url of urls) {
     try {
-      const response = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(url), {
-        method: "HEAD"
-      });
+      const response = await fetch("/api/scan?url=" + encodeURIComponent(url));
+      const data = await response.json();
 
-      const headers = [...response.headers.entries()];
       let score = 100;
       let risk = "Low";
-      let cspHeader = headers.find(([k]) => k.toLowerCase() === "content-security-policy");
-      if (!cspHeader) score -= 20;
-      else {
-        if (cspHeader[1].includes("*") || cspHeader[1].includes("unsafe-inline")) score -= 10;
-        if (!cspHeader[1].includes("nonce") && !cspHeader[1].includes("strict-dynamic")) score -= 5;
+
+      if (!data["content-security-policy"] || !data["content-security-policy"].value) {
+        score -= 20;
+      } else {
+        const val = data["content-security-policy"].value;
+        if (val.includes("*") || val.includes("unsafe-inline")) score -= 10;
+        if (!val.includes("nonce") && !val.includes("strict-dynamic")) score -= 5;
       }
 
       const mustHave = ["strict-transport-security", "x-frame-options", "x-content-type-options", "referrer-policy", "permissions-policy"];
       for (const key of mustHave) {
-        if (!headers.find(([k]) => k.toLowerCase() === key)) {
+        if (!data[key] || data[key].value === null) {
           score -= 10;
         }
       }
