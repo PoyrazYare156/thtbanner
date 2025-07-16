@@ -34,8 +34,8 @@ SECURITY_HEADERS = {
 async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
     
-@app.get("/guvenlik", response_class=HTMLResponse)
-async def guvenlik_page(request: Request):
+@app.get("/güvenlik", response_class=HTMLResponse)
+async def güvenlik_page(request: Request):
     return templates.TemplateResponse("güvenlik.html", {"request": request})
     
 @app.get("/api/scan")
