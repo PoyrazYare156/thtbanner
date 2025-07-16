@@ -2,46 +2,37 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <title>Gelişmiş Güvenlik Tarayıcı</title>
+  <title>Gelişmiş Güvenlik Başlık Tarayıcı</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="/static/guvenlik.js" defer></script>
+  <script src="/static/app.js" defer></script>
   <style>
-    body { font-family: sans-serif; background: #f8f9fa; margin: 20px; }
+    body { font-family: Arial; background: #f4f4f4; margin: 20px; }
     h1 { text-align: center; }
-    #controls { text-align: center; margin-bottom: 20px; }
-    input, button, textarea {
-      padding: 10px;
-      margin: 5px;
-      font-size: 16px;
-      width: 80%;
-      max-width: 500px;
+    #controls, #result, #bulkResults, #history {
+      max-width: 700px; margin: auto; padding: 20px;
+      background: white; box-shadow: 0 0 10px #ccc; border-radius: 8px;
+      margin-bottom: 20px;
     }
-    #result, #bulkResults {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px #ccc;
-      margin-top: 20px;
+    input, textarea, button {
+      width: 100%; padding: 10px; margin: 5px 0;
     }
-    table { width: 100%; border-collapse: collapse; }
-    td, th { padding: 10px; border: 1px solid #ccc; }
+    button { background: #007BFF; color: white; border: none; }
+    button:hover { background: #0056b3; }
   </style>
 </head>
 <body>
-  <h1>🛡️ Gelişmiş Güvenlik Tarayıcı</h1>
+  <h1>🔐 Gelişmiş Güvenlik Başlık Tarayıcısı</h1>
 
   <div id="controls">
-    <input type="text" id="targetUrl" placeholder="https://example.com" />
-    <br />
-    <button onclick="scanHeaders()">🔍 Tek Site Tara</button>
-    <br /><br />
-    <textarea id="bulkUrls" rows="5" placeholder="Her satıra bir URL yaz (https://...)"></textarea>
-    <br />
-    <button onclick="scanMultiple()">🧪 Toplu Tarama</button>
-    <button onclick="exportCSV()">⬇️ CSV Kaydet</button>
+    <input type="text" id="targetUrl" placeholder="https://site.com" />
+    <button onclick="scanHeaders()">TARA</button>
+    <textarea id="bulkUrls" rows="5" placeholder="Çoklu URL (satır satır)"></textarea>
+    <button onclick="scanMultiple()">TÜMÜNÜ TARA</button>
+    <button onclick="exportCSV()">📥 CSV DIŞA AKTAR</button>
   </div>
 
   <div id="result"></div>
   <div id="bulkResults"></div>
+  <div id="history"></div>
 </body>
 </html>
