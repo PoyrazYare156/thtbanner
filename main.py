@@ -36,7 +36,7 @@ async def root(request: Request):
     
 @app.get("/guvenlik", response_class=HTMLResponse)
 async def guvenlik_page(request: Request):
-    return templates.TemplateResponse("guvenlik.html", {"request": request})
+    return templates.TemplateResponse("güvenlik.html", {"request": request})
     
 @app.get("/api/scan")
 async def scan(url: str = Query(...)):
