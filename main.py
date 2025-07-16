@@ -40,7 +40,17 @@ async def root(request: Request):
 @app.get("/güvenlik", response_class=HTMLResponse)
 async def güvenlik_page(request: Request):
     return templates.TemplateResponse("güvenlik.html", {"request": request})
-    
+
+@app.get("/api/vulnscan")
+async def vuln_scan(url: str = Query(...)):
+    results = {
+        "sql_injection": test_sql_injection(url),
+        "xss": test_xss(url),
+        "waf": detect_waf(url),
+        "open_redirect": test_open_redirect(url)
+    }
+    return results
+
 @app.get("/api/scan")
 async def scan(url: str = Query(...)):
     try:
