@@ -41,6 +41,10 @@ async def root(request: Request):
 async def güvenlik_page(request: Request):
     return templates.TemplateResponse("güvenlik.html", {"request": request})
 
+@app.get("/vulnscan", response_class=HTMLResponse)
+async def vulnscan_page(request: Request):
+    return templates.TemplateResponse("vulnscan.html", {"request": request})
+
 @app.get("/api/vulnscan")
 async def vuln_scan(url: str = Query(...)):
     results = {
