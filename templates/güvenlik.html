@@ -1,1 +1,47 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gelişmiş Güvenlik Tarayıcı</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="/static/guvenlik.js" defer></script>
+  <style>
+    body { font-family: sans-serif; background: #f8f9fa; margin: 20px; }
+    h1 { text-align: center; }
+    #controls { text-align: center; margin-bottom: 20px; }
+    input, button, textarea {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
+      width: 80%;
+      max-width: 500px;
+    }
+    #result, #bulkResults {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #ccc;
+      margin-top: 20px;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    td, th { padding: 10px; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h1>🛡️ Gelişmiş Güvenlik Tarayıcı</h1>
 
+  <div id="controls">
+    <input type="text" id="targetUrl" placeholder="https://example.com" />
+    <br />
+    <button onclick="scanHeaders()">🔍 Tek Site Tara</button>
+    <br /><br />
+    <textarea id="bulkUrls" rows="5" placeholder="Her satıra bir URL yaz (https://...)"></textarea>
+    <br />
+    <button onclick="scanMultiple()">🧪 Toplu Tarama</button>
+    <button onclick="exportCSV()">⬇️ CSV Kaydet</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="bulkResults"></div>
+</body>
+</html>
