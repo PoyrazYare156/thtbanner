@@ -4,7 +4,10 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import cloudscraper
-
+from modules.sql_injection import test_sql_injection
+from modules.xss import test_xss
+from modules.waf_detect import detect_waf
+from modules.open_redirect import test_open_redirect
 app = FastAPI()
 
 # CORS çözümü
